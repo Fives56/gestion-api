@@ -22,7 +22,7 @@ async function get(querys) {
         search && {
           [Op.or]: [
             {name: {[Op.iLike]: '%'+ search +'%'}},
-            {amount: {[Op.iLike]: '%'+ search +'%'}}
+            {amount: {[Op.iLike]: '%'+ search +'%'}},
           ]
         },
       ],

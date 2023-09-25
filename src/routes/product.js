@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const productService = require('../services/product.service');
 const { validationResult } = require('express-validator');
+const validator = require('../services/validators/product.validator');
 
 router.get('/', async (req, res) => {
   
@@ -19,21 +20,22 @@ router.get('/', async (req, res) => {
 });
 
 /**POST */
-router.post("/", async (req, res) => {
- /*  const errors = validationResult(req);
+router.post("/", validator, async (req, res) => {
+  const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array });
-  } */
+  }
   const product = await productService.createOrUpdate(req.body);
   res.send(product);
 });
 
 /**PUT */
-router.put("/:id", async (req, res) => {
- /*  const errors = validationResult(req);
+router.put("/:id", validator, async (req, res) => {
+  const errors = validationResult(req);
+  console.log(req.body)
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array });
-  } */
+  }
   const product = await productService.createOrUpdate(req.body);
   res.send(product);
 });
