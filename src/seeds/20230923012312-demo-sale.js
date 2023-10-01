@@ -7,14 +7,12 @@ module.exports = {
       {
         productId: 1,
         quantity: 10,
-        date: new Date(),
         createdAt: new Date(),
         updatedAt: new Date()
       },
       {
         productId: 2,
         quantity: 5,
-        date: new Date(),
         createdAt: new Date(),
         updatedAt: new Date()
       }

@@ -4,8 +4,9 @@ const productService = require('../services/product.service');
 const { validationResult } = require('express-validator');
 const validator = require('../services/validators/product.validator');
 
+
+/**GET */
 router.get('/', async (req, res) => {
-  
   const querys = {};
   querys.search = req.query.search;
   querys.order = req.query.order || 'name';
@@ -14,10 +15,31 @@ router.get('/', async (req, res) => {
   querys.limit = req.query.limit || 10;
   querys.offset = req.query.offset || 0;
   querys.category = req.query.category;
-
+  
   const product = await productService.get(querys);
   res.send(product)
 });
+
+/**Get all sales of a product */
+router.get('/:id/sales', async (req, res) => {
+  const querys = {};
+  querys.search = req.query.search;
+  querys.order = req.query.order || 'quantity';
+  querys.direction = req.query.direction || 'ASC';
+  querys.pagination = req.query.pagination != 'false';
+  querys.limit = req.query.limit || 10;
+  querys.offset = req.query.offset || 0;
+  querys.category = req.query.category;
+
+  try {
+    const sales = await productService.getProductSales(querys, req.params.id);
+    res.json(sales)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'An error occurred while retrieving sales' })
+  }
+})
+
 
 /**POST */
 router.post("/", validator, async (req, res) => {
@@ -32,7 +54,7 @@ router.post("/", validator, async (req, res) => {
 /**PUT */
 router.put("/:id", validator, async (req, res) => {
   const errors = validationResult(req);
-  console.log(req.body)
+  
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array });
   }

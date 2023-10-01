@@ -10,22 +10,13 @@ const Op = db.Sequelize.Op;
  * @param {boolean} querys.pagination - Boolean to paginate
  * @param {number} querys.limit - Limit of sales per page
  * @param {number} querys.offset - Number of product to skip
- * @param {number} querys.category - Category
  * @returns The sales
  */
 async function get(querys) {
-    const { search, pagination, order, direction, limit, offset, category } = 
+    const { search, pagination, order, direction, limit, offset } = 
     querys;
   const sales = await db[model].findAndCountAll({
     where: {
-      [Op.and]: [
-        search && {
-          [Op.or]: [
-            {name: {[Op.iLike]: '%'+ search +'%'}},
-            {amount: {[Op.iLike]: '%'+ search +'%'}}
-          ]
-        },
-      ],
     },
     raw: true,
     limit: pagination ? limit : null,

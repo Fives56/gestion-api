@@ -5,7 +5,10 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Product extends Model {
     static associate(models) {
-      this.hasMany(models.Sale);
+      this.hasMany(models.Sale, {
+        foreignKey: 'productId',
+        as: 'sales'
+      });
     }
   }
   Product.init({

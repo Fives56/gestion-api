@@ -10,7 +10,6 @@ const Op = db.Sequelize.Op;
  * @param {boolean} querys.pagination - Boolean to paginate
  * @param {number} querys.limit - Limit of product per page
  * @param {number} querys.offset - Number of product to skip
- * @param {number} querys.category - Category
  * @returns The product
  */
 async function get(querys) {
@@ -34,6 +33,46 @@ async function get(querys) {
   });
   return product;
 }
+
+
+/**
+ * Get the sales of a product
+ * @param {string} querys.search - String to search
+ * @param {string} querys.order - Property to sort by
+ * @param {string} querys.direction - Direction of the order (asc or desc) 
+ * @param {boolean} querys.pagination - Boolean to paginate
+ * @param {number} querys.limit - Limit of product per page
+ * @param {number} querys.offset - Number of sales to skip
+ * @returns The sales
+ */
+async function getProductSales(querys, id) {
+  const { search, pagination, order, direction, limit, offset} = 
+  querys;
+
+  const product = await db[model].findByPk(id)
+  if (!product) {
+    return res.status(404).json({ error: 'Product not found' }); /* new Error('Product not found'); */
+  }
+
+  const sales = await product.getSales({
+  where: {
+    [Op.and]: [
+      search && {
+        [Op.or]: [
+          {name: {[Op.iLike]: '%'+ search +'%'}},
+          {amount: {[Op.iLike]: '%'+ search +'%'}},
+        ]
+      },
+    ],
+  },
+  raw: true,
+  limit: pagination ? limit : null,
+  offset: pagination ? offset : null,
+  order: [[order, direction]]
+});
+return sales;
+}
+
 
 /**
  * Create or update the product
@@ -85,4 +124,4 @@ async function destroy(id) {
 }
 
 
-module.exports = { get, createOrUpdate, destroy};
+module.exports = { get, createOrUpdate, destroy, getProductSales};
