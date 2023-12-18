@@ -20,6 +20,12 @@ router.get('/', async (req, res) => {
   res.send(product)
 });
 
+/**GET */
+/* router.get('/:id', async (req, res) => {
+  const product = await productService.getPoductById(req.params.id);
+  res.send(product)
+}); */
+
 /**Get all sales of a product */
 router.get('/:id/sales', async (req, res) => {
   const querys = {};
@@ -40,6 +46,20 @@ router.get('/:id/sales', async (req, res) => {
   }
 })
 
+router.get('/sales', async (req, res) => {
+  const querys = {};
+  querys.search = req.query.search;
+  querys.order = req.query.order || 'name';
+  querys.direction = req.query.direction || 'ASC';
+  querys.pagination = req.query.pagination != 'false';
+  querys.limit = req.query.limit || 10;
+  querys.offset = req.query.offset || 0;
+  querys.category = req.query.category;
+  
+  const product = await productService.getSoldProducts(querys);
+  res.send(product)
+});
+
 
 /**POST */
 router.post("/", validator, async (req, res) => {
@@ -48,7 +68,7 @@ router.post("/", validator, async (req, res) => {
     return res.status(400).json({ errors: errors.array });
   }
   const product = await productService.createOrUpdate(req.body);
-  res.send(product);
+  res.status(201).send(product);
 });
 
 /**PUT */
