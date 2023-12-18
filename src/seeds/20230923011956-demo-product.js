@@ -8,7 +8,7 @@ module.exports = {
         name: 'Producto 1',
         price: 9.99,
         amount: 100,
-        createdAt: new Date(),
+        createdAt: new Date(), 
         updatedAt: new Date()
       },
       {

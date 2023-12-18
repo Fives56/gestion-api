@@ -4,8 +4,21 @@ const saleService = require('../services/sale.service');
 const { validationResult } = require('express-validator');
 const validator = require('../services/validators/sale.validator');
 
+/**GET all sales */
 router.get('/', async (req, res) => {
   
+  const querys = {};
+  querys.order = req.query.order || 'id';
+  querys.direction = req.query.direction || 'ASC';
+  querys.pagination = req.query.pagination != 'false';
+  querys.limit = req.query.limit || 10;
+  querys.offset = req.query.offset || 0;
+
+  const sales = await saleService.get(querys, req.query);
+  res.send(sales);
+});
+
+router.get('/months', async (req, res) => {
   const querys = {};
   querys.search = req.query.search;
   querys.order = req.query.order || 'id';
@@ -13,10 +26,11 @@ router.get('/', async (req, res) => {
   querys.pagination = req.query.pagination != 'false';
   querys.limit = req.query.limit || 10;
   querys.offset = req.query.offset || 0;
-
-  const sale = await saleService.get(querys);
-  res.send(sale)
+  
+  const sales = await saleService.getMonths(querys);
+  res.send(sales);
 });
+
 
 /**POST */
 router.post("/", validator, async (req, res) => {
@@ -25,7 +39,7 @@ router.post("/", validator, async (req, res) => {
     return res.status(400).json({ errors: errors.array });
   }
   const sale = await saleService.createOrUpdate(req.body);
-  res.send(sale);
+  res.status(201).send(sale);
 });
 
 /**PUT */

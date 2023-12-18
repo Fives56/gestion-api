@@ -1,29 +1,124 @@
 const model = "Sale";
 const db = require("./../models");
 const Op = db.Sequelize.Op;
+const Sequelize = require("sequelize");
+const moment = require("moment");
+require("moment/locale/es");
+const sequelize = new Sequelize("db_gestion_dev", "postgres", "postgres", {
+  host: "localhost",
+  dialect: "postgres",
+});
 
 /**
  * Get the sales
  * @param {string} querys.search - String to search
  * @param {string} querys.order - Property to sort by
- * @param {string} querys.direction - Direction of the order (asc or desc) 
+ * @param {string} querys.direction - Direction of the order (asc or desc)
  * @param {boolean} querys.pagination - Boolean to paginate
  * @param {number} querys.limit - Limit of sales per page
  * @param {number} querys.offset - Number of product to skip
  * @returns The sales
  */
-async function get(querys) {
-    const { search, pagination, order, direction, limit, offset } = 
-    querys;
-  const sales = await db[model].findAndCountAll({
-    where: {
-    },
-    raw: true,
+async function get(querys, date) {
+  const { pagination, order, direction, limit, offset } = querys;
+  let sales;
+
+  if (!!date.year) {
+    sales = await db[model].findAndCountAll({
+      where: sequelize.where(
+        sequelize.fn("EXTRACT", sequelize.literal("YEAR FROM date")),
+        date.year
+      ),
+      include: [
+        {
+          model: db["Product"],
+          as: "product",
+        },
+      ],
+      raw: true,
+      limit: pagination ? limit : null,
+      offset: pagination ? offset : null,
+      order: [[order, direction]],
+    });
+    return sales;
+  } else if (!!date.month) {
+    sales = await db[model].findAndCountAll({
+      where: sequelize.where(
+        sequelize.fn("EXTRACT", sequelize.literal("MONTH FROM date")),
+        date.month
+      ),
+      include: [
+        {
+          model: db["Product"],
+          as: "product",
+        },
+      ],
+      raw: true,
+      limit: pagination ? limit : null,
+      offset: pagination ? offset : null,
+      order: [[order, direction]],
+    });
+    return sales;
+  } else if (!!date.day) {
+    sales = await db[model].findAndCountAll({
+      where: sequelize.where(
+        sequelize.fn("EXTRACT", sequelize.literal("DAY FROM date")),
+        date.day
+      ),
+      include: [
+        {
+          model: db["Product"],
+          as: "product",
+        },
+      ],
+      raw: true,
+      limit: pagination ? limit : null,
+      offset: pagination ? offset : null,
+      order: [[order, direction]],
+    });
+    return sales;
+  } else {
+    sales = await db[model].findAndCountAll({
+      where: {},
+      include: [
+        {
+          model: db["Product"],
+          as: "product",
+        },
+      ],
+      raw: true,
+      limit: pagination ? limit : null,
+      offset: pagination ? offset : null,
+      order: [[order, direction]],
+    });
+    return sales;
+  }
+}
+
+async function getMonths(querys) {
+  moment.locale("es");
+  const { pagination, direction, limit, offset } = querys;
+
+  const monthSales = await db[model].findAll({
+    attributes: [
+      [sequelize.fn("EXTRACT", sequelize.literal("MONTH FROM date")), "month"],
+      [sequelize.fn("COUNT", sequelize.col("quantity")), "sales"],
+    ],
+    group: [sequelize.literal("EXTRACT(MONTH FROM date)")],
+    order: [[sequelize.literal("month"), direction]],
     limit: pagination ? limit : null,
-    offset: pagination ? offset : null,
-    order: [[order, direction]]
+    offset: pagination ? offset : 0,
   });
-  return sales;
+
+  const months = monthSales.map((sale) => {
+    const monthNumber = sale.dataValues.month;
+    const monthName = moment()
+      .month(monthNumber - 1)
+      .format("MMMM")
+      .replace(/\b\w/g, (match) => match.toUpperCase());
+    return { month: monthName, sales: sale.dataValues.sales };
+  });
+  return months;
 }
 
 /**
@@ -42,18 +137,17 @@ async function createOrUpdate(body) {
     sale = await db[model].create({
       productId: body.productId,
       quantity: body.quantity,
-      date: body.date
+      date: body.date,
     });
   } else {
     sale = await db[model].findByPk(body.id);
     if (!sale) {
       throw new Error(`Sale with ID ${body.id} not found.`);
     }
-
     await sale.update({
       productId: body.productId,
       quantity: body.quantity,
-      date: body.date
+      date: body.date,
     });
   }
   return sale;
@@ -61,18 +155,18 @@ async function createOrUpdate(body) {
 
 /**
  * Delete a sale by id
- * @param {number} id - Id of the sale to be delete 
+ * @param {number} id - Id of the sale to be delete
  * @returns A menssage
  * @throws {Error} - Throws a error if the id is not in the data base
  */
 async function destroy(id) {
   const sale = await db[model].findByPk(id);
   if (!sale) {
-    throw new Error(`Sale with ID ${id} not found.`)
+    throw new Error(`Sale with ID ${id} not found.`);
   }
 
   await sale.destroy();
   return `The sale ${id} has been deleted.`;
 }
 
-module.exports = { get, createOrUpdate, destroy};
+module.exports = { get, createOrUpdate, destroy, getMonths };
