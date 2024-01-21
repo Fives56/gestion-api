@@ -132,15 +132,24 @@ async function getMonths(querys) {
  * @throws {Error} If the id not exist in the data base throws a error
  */
 async function createOrUpdate(body) {
-  let sale;
-  if (!body.id) {
-    sale = await db[model].create({
+  let sale = [];
+  if (body.products.length > 0) {
+    for (const element of body.products) {
+      sale.push( await db[model].create({
+        productId:element.product.id,
+        quantity: element.quantity,
+        date: moment()
+      }));
+    }
+  console.log(body);
+  } else if (!body.id) {
+    sale[0] = await db[model].create({
       productId: body.productId,
       quantity: body.quantity,
       date: body.date,
     });
   } else {
-    sale = await db[model].findByPk(body.id);
+    sale[0] = await db[model].findByPk(body.id);
     if (!sale) {
       throw new Error(`Sale with ID ${body.id} not found.`);
     }

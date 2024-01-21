@@ -18,12 +18,12 @@ async function get(querys) {
   const { search, pagination, order, direction, limit, offset, category } =
     querys;
   const product = await db[model].findAndCountAll({
-    include: [
+    /* include: [
       {
         model: db["Sale"],
         as: "sales",
       },
-    ],
+    ], */
     where: {
       [Op.and]: [
         search && {
@@ -118,10 +118,11 @@ async function getSoldProducts() {
     ],
     raw: true,
   }).then((products) => {
-    const results = products.map((product) => ({
-      name: product.name,
-      value: parseInt(product.totalSales) || 0,
-    }));
+    const results = products
+      .map((product) => ({
+        name: product.name,
+        value: parseInt(product.totalSales) || 0,
+      }))
     return results;
   });
 }
